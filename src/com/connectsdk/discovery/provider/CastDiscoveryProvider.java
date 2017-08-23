@@ -222,30 +222,34 @@ public class CastDiscoveryProvider implements DiscoveryProvider {
 
             ServiceDescription foundService = foundServices.get(uuid);
 
-            boolean isNew = foundService == null;
             boolean listUpdateFlag = false;
 
-            if (!isNew) {
-                foundService.setIpAddress(castDevice.getIpAddress().getHostAddress());
-                foundService.setModelName(castDevice.getModelName());
-                foundService.setModelNumber(castDevice.getDeviceVersion());
-                foundService.setModelDescription(route.getDescription());
-                foundService.setPort(castDevice.getServicePort());
-                foundService.setDevice(castDevice);
+            if (foundService == null) {
+                foundService = new ServiceDescription(CastService.ID, uuid, castDevice.getIpAddress().getHostAddress());
+                foundService.setFriendlyName(castDevice.getFriendlyName());
+                foundService.setServiceID(CastService.ID);
+                listUpdateFlag = true;
+            }
 
-                if (!foundService.getFriendlyName().equals(castDevice.getFriendlyName())) {
-                    foundService.setFriendlyName(castDevice.getFriendlyName());
-                    listUpdateFlag = true;
-                }
+            foundService.setIpAddress(castDevice.getIpAddress().getHostAddress());
+            foundService.setModelName(castDevice.getModelName());
+            foundService.setModelNumber(castDevice.getDeviceVersion());
+            foundService.setModelDescription(route.getDescription());
+            foundService.setPort(castDevice.getServicePort());
+            foundService.setDevice(castDevice);
 
-                foundService.setLastDetection(new Date().getTime());
+            if (!foundService.getFriendlyName().equals(castDevice.getFriendlyName())) {
+                foundService.setFriendlyName(castDevice.getFriendlyName());
+                listUpdateFlag = true;
+            }
 
-                foundServices.put(uuid, foundService);
+            foundService.setLastDetection(new Date().getTime());
 
-                if (listUpdateFlag) {
-                    for (DiscoveryProviderListener listenter: serviceListeners) {
-                        listenter.onServiceAdded(CastDiscoveryProvider.this, foundService);
-                    }
+            foundServices.put(uuid, foundService);
+
+            if (listUpdateFlag) {
+                for (DiscoveryProviderListener listenter: serviceListeners) {
+                    listenter.onServiceAdded(CastDiscoveryProvider.this, foundService);
                 }
             }
         }
